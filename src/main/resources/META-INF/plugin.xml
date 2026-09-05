@@ -1,8 +1,8 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>com.github.nityeskyrodin.aeschryn</id>
+    <id>com.skylineindustries.aeschryn</id>
     <name>Aeschryn</name>
-    <vendor>nityeskyrodin</vendor>
+    <vendor>SkylineIndustries</vendor>
     <description><![CDATA[
         <p><b>Aeschryn</b> shows the open Bitbucket pull requests for the repository behind your current project, right inside the IDE.</p>
     ]]></description>
@@ -10,7 +10,7 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.nityeskyrodin.aeschryn.toolWindow.PullRequestToolWindowFactory"
+        <toolWindow factoryClass="com.skylineindustries.aeschryn.toolWindow.PullRequestToolWindowFactory"
                      id="Bitbucket Pull Requests"
                      anchor="right"/>
     </extensions>

@@ -1,9 +1,9 @@
-package com.github.nityeskyrodin.aeschryn.toolWindow
+package com.skylineindustries.aeschryn.toolWindow
 
-import com.github.nityeskyrodin.aeschryn.bitbucket.BitbucketApiClient
-import com.github.nityeskyrodin.aeschryn.bitbucket.BitbucketCredentials
-import com.github.nityeskyrodin.aeschryn.bitbucket.BitbucketPullRequest
-import com.github.nityeskyrodin.aeschryn.bitbucket.BitbucketRepoDetector
+import com.skylineindustries.aeschryn.bitbucket.BitbucketApiClient
+import com.skylineindustries.aeschryn.bitbucket.BitbucketCredentials
+import com.skylineindustries.aeschryn.bitbucket.BitbucketPullRequest
+import com.skylineindustries.aeschryn.bitbucket.BitbucketRepoDetector
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.ActionManager
@@ -32,7 +32,6 @@ import java.awt.BorderLayout
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.JComponent
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.KeyStroke
@@ -78,7 +77,7 @@ private class PullRequestPanel(private val project: Project) : JPanel(BorderLayo
         list.registerKeyboardAction(
             { openSelectedPullRequest() },
             KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
-            JComponent.WHEN_FOCUSED
+            WHEN_FOCUSED
         )
 
         reload()

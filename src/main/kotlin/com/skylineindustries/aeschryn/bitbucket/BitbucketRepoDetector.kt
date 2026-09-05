@@ -1,4 +1,4 @@
-package com.github.nityeskyrodin.aeschryn.bitbucket
+package com.skylineindustries.aeschryn.bitbucket
 
 import com.intellij.openapi.project.Project
 import java.io.File

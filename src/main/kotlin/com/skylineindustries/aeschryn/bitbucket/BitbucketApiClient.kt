@@ -1,4 +1,4 @@
-package com.github.nityeskyrodin.aeschryn.bitbucket
+package com.skylineindustries.aeschryn.bitbucket
 
 import com.google.gson.Gson
 import com.intellij.openapi.components.Service
