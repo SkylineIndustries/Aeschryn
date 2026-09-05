@@ -4,6 +4,7 @@ import com.skylineindustries.aeschryn.bitbucket.BitbucketApiClient
 import com.skylineindustries.aeschryn.bitbucket.BitbucketCredentials
 import com.skylineindustries.aeschryn.bitbucket.BitbucketPullRequest
 import com.skylineindustries.aeschryn.bitbucket.BitbucketRepoDetector
+import com.intellij.credentialStore.Credentials
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.ActionManager
@@ -16,7 +17,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.CollectionListModel
@@ -24,14 +25,19 @@ import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
+import com.intellij.ui.components.JBPasswordField
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.JBTextField
 import com.intellij.ui.content.ContentFactory
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.io.HttpRequests
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.JComponent
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.KeyStroke
@@ -88,20 +94,16 @@ private class PullRequestPanel(private val project: Project) : JPanel(BorderLayo
         group.add(object : AnAction("Refresh", "Reload pull requests", AllIcons.Actions.Refresh) {
             override fun actionPerformed(e: AnActionEvent) = reload()
         })
-        group.add(object : AnAction("Set API Token…", "Store your Bitbucket API token", AllIcons.General.GearPlain) {
+        group.add(object : AnAction("Set API Token…", "Store your Bitbucket account e-mail and API token", AllIcons.General.GearPlain) {
             override fun actionPerformed(e: AnActionEvent) = promptForToken()
         })
         return group
     }
 
     private fun promptForToken() {
-        val token = Messages.showPasswordDialog(
-            project,
-            "Bitbucket API token (Repository settings > API tokens):",
-            "Bitbucket API Token",
-            null
-        ) ?: return
-        BitbucketCredentials.setToken(token.ifBlank { null })
+        val dialog = BitbucketCredentialsDialog(project, BitbucketCredentials.get())
+        if (!dialog.showAndGet()) return
+        BitbucketCredentials.set(dialog.email, dialog.token)
         reload()
     }
 
@@ -119,12 +121,17 @@ private class PullRequestPanel(private val project: Project) : JPanel(BorderLayo
         }
 
         statusLabel.text = "Loading pull requests for ${repo.workspace}/${repo.repoSlug}…"
-        val token = BitbucketCredentials.getToken()
+        val credentials = BitbucketCredentials.get()
 
         ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Loading Bitbucket pull requests", true) {
             override fun run(indicator: ProgressIndicator) {
                 try {
-                    val prs = service<BitbucketApiClient>().fetchOpenPullRequests(repo.workspace, repo.repoSlug, token)
+                    val prs = service<BitbucketApiClient>().fetchOpenPullRequests(
+                        repo.workspace,
+                        repo.repoSlug,
+                        credentials?.userName,
+                        credentials?.getPasswordAsString()
+                    )
                     ApplicationManager.getApplication().invokeLater {
                         updateList(prs)
                         statusLabel.text = "${prs.size} open pull request(s) for ${repo.workspace}/${repo.repoSlug}"
@@ -148,6 +155,28 @@ private class PullRequestPanel(private val project: Project) : JPanel(BorderLayo
         listModel.removeAll()
         listModel.addAll(0, items)
     }
+}
+
+private class BitbucketCredentialsDialog(
+    project: Project,
+    existing: Credentials?,
+) : DialogWrapper(project) {
+
+    private val emailField = JBTextField(existing?.userName ?: "")
+    private val tokenField = JBPasswordField().apply { text = existing?.getPasswordAsString() ?: "" }
+
+    init {
+        title = "Bitbucket API Token"
+        init()
+    }
+
+    override fun createCenterPanel(): JComponent = panel {
+        row("Atlassian account e-mail:") { cell(emailField).align(AlignX.FILL) }
+        row("API token:") { cell(tokenField).align(AlignX.FILL) }
+    }
+
+    val email: String get() = emailField.text.trim()
+    val token: String get() = String(tokenField.password)
 }
 
 private class PullRequestCellRenderer : ColoredListCellRenderer<BitbucketPullRequest>() {
